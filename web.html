@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Display a map on a webpage</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.2/mapbox-gl.js"></script>
+    <style>
+      
+        /* استایل عمومی */
+        body {
+            font-family: 'Vazir', sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 12vh;
+            margin: 0;
+        }
+
+        /* استایل باکس */
+        .box {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* انیمیشن hover */
+        .box:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .box h1 {
+            font-size: 35px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .box p {
+            font-size: 18px;
+            color: #555;
+        }  
+		body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 13%; bottom: 0; width: 100%; }
+        #layerControl {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            padding: 10px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>برداشت کالبدی شهر داورزن</h1>
+    </div>
+
+    <div id="layerControl">
+        <input type="checkbox" id="ayan" checked> اعیان
+        <br>
+        <input type="checkbox" id="arse" checked> عرصه
+        <br>
+        <input type="checkbox" id="photo" checked> عکس هوایی
+    </div>
+
+    <div id="map"></div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiamF2YWRyaWdpIiwiYSI6ImNsNHY1YmNrMTE2dGszam51cG55c3J6bDgifQ.nhodllum999UBo_qE_jKiw';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/javadrigi/cm2hjvlwo014701pi7zvw52jf',
+            center: [56.8748, 36.3519],
+            zoom: 15
+        });
+
+        // افزودن کنترل‌های نقشه
+        map.addControl(new mapboxgl.NavigationControl());
+        map.addControl(new mapboxgl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true,
+            showUserHeading: true
+        }));
+
+        // وقتی نقشه بارگذاری شد
+        map.on('load', function () {
+            // چک‌باکس‌ها و لایه‌های مربوطه
+            const layers = {
+                ayan: 'ayan', // شناسه واقعی لایه‌ها از Mapbox Studio
+                arse: 'arse',
+                photo: 'photo-layer-id'
+            };
+
+            // مدیریت تغییر وضعیت لایه‌ها
+            Object.keys(layers).forEach((id) => {
+                const checkbox = document.getElementById(id);
+                checkbox.addEventListener('change', function () {
+                    map.setLayoutProperty(
+                        layers[id],
+                        'visibility',
+                        this.checked ? 'visible' : 'none'
+                    );
+                });
+            });
+        });
+		   map.on('load', function () {
+    // وقتی که کاربر بر روی نقشه کلیک می‌کند
+    map.on('click', function (e) {
+        // مختصات کلیک شده (روی نقشه)
+        var features = map.queryRenderedFeatures(e.point);
+
+        // اگر ویژگی‌ای پیدا شود
+        if (features.length) {
+            // انتخاب اولین ویژگی در نتیجه
+            var feature = features[0];
+
+            // نمایش اطلاعات ویژگی در کنسول
+            console.log('Feature ID: ' + feature.id);
+            console.log('Feature Properties: ', feature.properties);
+
+            // برای نمایش اطلاعات در یک جعبه اطلاعات یا چیزی مشابه
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML('<strong>Feature ID:</strong> ' + feature.id + '<br><strong>Properties:</strong><pre>' + JSON.stringify(feature.properties, null, 2) + '</pre>')
+                .addTo(map);
+        }
+    });
+});
+const geolocateControl = new mapboxgl.GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    trackUserLocation: true,
+    showUserHeading: true
+});
+
+map.addControl(geolocateControl);
+
+map.on('load', () => {
+    geolocateControl.on('geolocate', (position) => {
+        console.log('User location:', position.coords);
+    });
+
+    // فعال‌سازی دستی موقعیت مکانی
+    geolocateControl.trigger();
+});
+
+    </script>
+</body>
+</html>
